@@ -1,36 +1,224 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kasbon App
 
-## Getting Started
+Kasbon App adalah aplikasi web sederhana untuk mencatat utang-piutang pribadi. Aplikasi ini dibuat untuk kebutuhan hiring task dengan fokus pada auth, keamanan data per user menggunakan Supabase RLS, business logic kasbon, dan UI dashboard yang nyaman dipakai.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js 16 App Router + TypeScript
+- Tailwind CSS v4
+- Supabase PostgreSQL + Auth
+- Lucide React
+
+## Features
+
+- Signup, login, dan logout menggunakan email/password Supabase Auth.
+- Dashboard `/` diproteksi, hanya bisa diakses user yang sudah login.
+- CRUD catatan kasbon melalui API route:
+    - `GET /api/debts`
+    - `POST /api/debts`
+    - `PATCH /api/debts/[id]`
+    - `DELETE /api/debts/[id]`
+- Summary cards:
+    - Total dihutang ke saya
+    - Total saya hutang
+    - Net
+- Format nominal menggunakan Rupiah Indonesia.
+- Status kasbon memakai `settled_at`:
+    - `null` berarti belum lunas
+    - ada timestamp berarti sudah lunas
+- Aksi tandai lunas dan buka lagi.
+- Edit dan delete otomatis disembunyikan untuk data yang sudah lunas.
+- Filter berdasarkan status dan tipe.
+- Search berdasarkan nama orang.
+- Sort berdasarkan jumlah dan tanggal.
+- Chart sederhana untuk membandingkan total dihutang vs total hutang.
+- Empty state, loading state, dan error state.
+- Layout responsive dengan perhatian khusus untuk mobile.
+
+## Setup
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Environment Variables
+
+Buat file `.env.local` di root project, lalu isi:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_or_publishable_key
+```
+
+Project URL dan anon/publishable key bisa diambil dari Supabase Dashboard pada menu Project Settings atau API Keys.
+
+### 3. Database Migration
+
+Migration database tersedia di:
+
+```text
+supabase/migrations/202609050001_create_debts.sql
+```
+
+Migration ini membuat:
+
+- enum `public.debt_type` dengan nilai `owed_to_me` dan `i_owe`
+- table `public.debts`
+- trigger `updated_at`
+- Row Level Security
+- policy SELECT, INSERT, UPDATE, DELETE untuk data milik user sendiri
+
+Jika menjalankan manual lewat Supabase SQL Editor, copy isi file migration tersebut dan run di project Supabase yang digunakan.
+
+### 4. Run Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 5. Build Check
 
-## Learn More
+```bash
+npm run lint
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Database
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Table utama:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+public.debts
+```
 
-## Deploy on Vercel
+Kolom penting:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `id`: primary key UUID
+- `user_id`: relasi ke `auth.users`
+- `type`: `owed_to_me` atau `i_owe`
+- `counterpart_name`: nama orang
+- `amount`: jumlah dalam Rupiah
+- `note`: catatan opsional, maksimal 200 karakter
+- `due_date`: tanggal kasbon
+- `settled_at`: status lunas
+- `created_at` dan `updated_at`: timestamp audit
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## RLS Testing
+
+RLS diuji menggunakan dua akun berbeda:
+
+- User A: pemilik data
+- User B: user lain yang mencoba membaca atau mengubah data User A
+
+Evidence screenshot disimpan di folder:
+
+```text
+D:\dev\Konten.com\Documentation testing RLS
+```
+
+Test yang dilakukan:
+
+- User B tidak bisa SELECT debt milik User A, hasilnya `[]`.
+- User B tidak bisa UPDATE debt milik User A, data tetap tidak berubah saat dicek oleh User A.
+- User B tidak bisa DELETE debt milik User A, data tetap masih ada saat dicek oleh User A.
+- User B tidak bisa INSERT debt dengan `user_id` milik User A, hasilnya `403 Forbidden`.
+
+Ringkasan evidence:
+
+| Scenario                           | Actor                                      | Expected Result                 | Status |
+| ---------------------------------- | ------------------------------------------ | ------------------------------- | ------ |
+| SELECT data user lain              | User B membaca debt milik User A           | `[]`                            | Passed |
+| INSERT data ke `user_id` user lain | User B insert debt dengan `user_id` User A | `403 Forbidden`                 | Passed |
+| UPDATE data user lain              | User B mengubah note debt milik User A     | Data User A tetap tidak berubah | Passed |
+| DELETE data user lain              | User B menghapus debt milik User A         | Data User A tetap masih ada     | Passed |
+
+Evidence files:
+
+- `Setup persiapan test RLS.png`
+- `Data user andibeiber.png`
+- `Data user v99akun.png`
+- `Ambil 1 data debts user andibeiber.png`
+- `Coba select leak data user andibeiber dari user v99akun.png`
+- `Test Insert dari User v99akun ke user andibeiber.png`
+- `Select data yang tadi coba di insert.png`
+- `Test update data User andibeiber menggunakan user v99akun.png`
+- `Test delete data User andibeiber menggunakan user v99akun.png`
+
+Contoh test INSERT leak:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "$SUPABASE_URL/rest/v1/debts" `
+  -Headers @{
+    apikey = $ANON_KEY
+    Authorization = "Bearer $TOKEN_B"
+    Prefer = "return=representation"
+  } `
+  -ContentType "application/json" `
+  -Body '{"user_id":"USER_A_ID","type":"owed_to_me","counterpart_name":"Insert Leak Test","amount":999000,"note":"USER B INSERT TO USER A"}'
+```
+
+Expected result:
+
+```text
+403 Forbidden
+```
+
+Verifikasi data tidak masuk:
+
+```powershell
+curl.exe "$SUPABASE_URL/rest/v1/debts?counterpart_name=eq.Insert%20Leak%20Test&select=*" `
+  -H "apikey: $ANON_KEY" `
+  -H "Authorization: Bearer $TOKEN_A"
+```
+
+Expected result:
+
+```json
+[]
+```
+
+## Approach
+
+Auth dibuat dengan Supabase Auth dan session dijaga di server menggunakan `@supabase/ssr`. Route `/` diproteksi lewat `proxy.ts`, sehingga user yang belum login diarahkan ke `/login`.
+
+Data kasbon diakses lewat API route Next.js, bukan langsung dari komponen UI. API route melakukan pengecekan user login, validasi input, dan query ke Supabase. RLS tetap menjadi lapisan keamanan utama di database agar data user tidak bocor walaupun endpoint atau Supabase REST API dipanggil langsung.
+
+Validasi input dibuat manual tanpa library tambahan seperti Zod agar dependency tetap dekat dengan requirement. Validasi dilakukan di client untuk UX dan di server untuk keamanan.
+
+## Trade-offs
+
+- Section catatan kasbon dibuat menggunakan data table agar lebih rapi untuk banyak data, dengan konsekuensi layout mobile perlu dibuat khusus agar tetap nyaman di layar kecil.
+- Validasi manual cukup untuk field yang sederhana, tetapi pada aplikasi yang lebih besar schema validator seperti Zod bisa membantu menjaga konsistensi.
+- Chart dibuat sederhana agar fokus tetap pada fungsi utama dashboard.
+- Grouping nama orang yang sama belum dijadikan tampilan utama karena fitur inti CRUD, RLS, search, sort, dan state handling diprioritaskan lebih dulu.
+
+## Time Spent
+
+- Setup project, Supabase, dan auth: sekitar ... jam
+- Database schema, RLS, dan API route: sekitar ... jam
+- Dashboard CRUD dan UI/UX polish: sekitar ... jam
+- Testing RLS, lint, build, dan dokumentasi: sekitar ... jam
+
+Total: sekitar ... jam
+
+## Demo
+
+Vercel URL:
+
+```text
+-
+```
+
+## Notes
+
+Token Supabase Auth dan service role key tidak boleh dipublikasikan. Untuk dokumentasi testing, token di terminal atau screenshot sebaiknya di-crop atau disamarkan.
