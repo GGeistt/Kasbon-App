@@ -118,10 +118,10 @@ RLS diuji menggunakan dua akun berbeda:
 - User A: pemilik data
 - User B: user lain yang mencoba membaca atau mengubah data User A
 
-Evidence screenshot disimpan di folder:
+Evidence screenshot disimpan di folder repo:
 
 ```text
-D:\dev\Konten.com\Documentation testing RLS
+docs/rls-evidence
 ```
 
 Test yang dilakukan:
@@ -142,15 +142,25 @@ Ringkasan evidence:
 
 Evidence files:
 
-- `Setup persiapan test RLS.png`
-- `Data user andibeiber.png`
-- `Data user v99akun.png`
-- `Ambil 1 data debts user andibeiber.png`
-- `Coba select leak data user andibeiber dari user v99akun.png`
-- `Test Insert dari User v99akun ke user andibeiber.png`
-- `Select data yang tadi coba di insert.png`
-- `Test update data User andibeiber menggunakan user v99akun.png`
-- `Test delete data User andibeiber menggunakan user v99akun.png`
+- [Setup persiapan test RLS](docs/rls-evidence/Setup%20persiapan%20test%20RLS.png)
+- [Data user andibeiber](docs/rls-evidence/Data%20user%20andibeiber.png)
+- [Data user v99akun](docs/rls-evidence/Data%20user%20v99akun.png)
+- [Ambil 1 data debts user andibeiber](docs/rls-evidence/Ambil%201%20data%20debts%20user%20andibeiber.png)
+- [Coba select leak data user andibeiber dari user v99akun](docs/rls-evidence/Coba%20select%20leak%20data%20user%20andibeiber%20dari%20user%20v99akun.png)
+- [Test Insert dari User v99akun ke user andibeiber](docs/rls-evidence/Test%20Insert%20dari%20User%20v99akun%20ke%20user%20andibeiber.png)
+- [Select data yang tadi coba di insert](docs/rls-evidence/Select%20data%20yang%20tadi%20coba%20di%20insert.png)
+- [Test update data User andibeiber menggunakan user v99akun](docs/rls-evidence/Test%20update%20data%20User%20andibeiber%20menggunakan%20user%20v99akun.png)
+- [Test delete data User andibeiber menggunakan user v99akun](docs/rls-evidence/Test%20delete%20data%20User%20andibeiber%20menggunakan%20user%20v99akun.png)
+
+Preview evidence utama:
+
+![SELECT leak test](docs/rls-evidence/Coba%20select%20leak%20data%20user%20andibeiber%20dari%20user%20v99akun.png)
+
+![INSERT leak test](docs/rls-evidence/Test%20Insert%20dari%20User%20v99akun%20ke%20user%20andibeiber.png)
+
+![UPDATE leak test](docs/rls-evidence/Test%20update%20data%20User%20andibeiber%20menggunakan%20user%20v99akun.png)
+
+![DELETE leak test](docs/rls-evidence/Test%20delete%20data%20User%20andibeiber%20menggunakan%20user%20v99akun.png)
 
 Contoh test INSERT leak:
 
@@ -204,19 +214,19 @@ Validasi input dibuat manual tanpa library tambahan seperti Zod agar dependency 
 
 ## Time Spent
 
-- Setup project, Supabase, dan auth: sekitar ... jam
-- Database schema, RLS, dan API route: sekitar ... jam
-- Dashboard CRUD dan UI/UX polish: sekitar ... jam
-- Testing RLS, lint, build, dan dokumentasi: sekitar ... jam
+- Setup project, Supabase, dan auth: sekitar 2 jam
+- Database schema, RLS, dan API route: sekitar 3 jam
+- Dashboard CRUD, filter, search, sort, chart, dan mobile polish: sekitar 3 jam
+- Testing RLS dan README: sekitar 2 jam
 
-Total: sekitar ... jam
+Total: sekitar 10 jam
 
 ## Demo
 
 Vercel URL:
 
 ```text
--
+https://kasbon-app-nu.vercel.app/
 ```
 
 ## Notes
