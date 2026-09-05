@@ -217,7 +217,6 @@ Validasi input dibuat manual tanpa library tambahan seperti Zod agar dependency 
 
 - Section catatan kasbon dibuat menggunakan data table agar lebih rapi untuk banyak data, dengan konsekuensi layout mobile perlu dibuat khusus agar tetap nyaman di layar kecil.
 - Validasi manual cukup untuk field yang sederhana, tetapi pada aplikasi yang lebih besar schema validator seperti Zod bisa membantu menjaga konsistensi.
-- Chart dibuat sederhana agar fokus tetap pada fungsi utama dashboard.
 - Grouping nama orang yang sama belum dijadikan tampilan utama karena fitur inti CRUD, RLS, search, sort, dan state handling diprioritaskan lebih dulu.
 
 ## Time Spent
@@ -236,7 +235,3 @@ Vercel URL:
 ```text
 https://kasbon-app-nu.vercel.app/
 ```
-
-## Notes
-
-Token Supabase Auth dan service role key tidak boleh dipublikasikan. Untuk dokumentasi testing, token di terminal atau screenshot sebaiknya di-crop atau disamarkan.
